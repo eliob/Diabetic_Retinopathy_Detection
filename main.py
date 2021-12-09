@@ -7,22 +7,25 @@
 # ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v11.5\\bin\\cusolver64_11.dll")
 # ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v11.5\\bin\\cusparse64_11.dll")
 # ctypes.WinDLL("C:\\tools\\cuda\\bin\\cudnn64_8.dll")
-
 import tensorflow as tf
+from tensorflow import keras
 import tensorflow_addons as tfa
+import pydot
+import graphviz
 import data_gen
 import model
 import get_dataset
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    NUM_EPOCHS = 40
-    IMAGE_SIZE = 128
+    NUM_EPOCHS = 20
+    IMAGE_SIZE = 299
     BS = 32
 
     train_df, valid_df, test_df = get_dataset.get_datasets()
     trainGen, valGen, testGen = data_gen.get_data_generators(train_df, valid_df, test_df, image_size=IMAGE_SIZE, BS=32)
-    model = model.get_model()
+    model = model.get_model(image_size=299, model_type='InceptionV3_att')  # 'InceptionV3' \ 'InceptionV3_att' \
+    # 'DenseNet121'
 
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),  # by default learning_rate=0.001
@@ -31,6 +34,8 @@ if __name__ == '__main__':
                  tf.keras.metrics.Recall(name='recall'), tf.keras.metrics.Precision(name='precision'),
                  tfa.metrics.CohenKappa(num_classes=5, sparse_labels=False, weightage='quadratic')]
     )
+    model.summary()
+    # keras.utils.plot_model(model, show_shapes=True)
 
     history = model.fit(
         trainGen,
